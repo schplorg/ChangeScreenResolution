@@ -4,7 +4,7 @@
   .Description
     Uses Pinvoke and ChangeDisplaySettings Win32API to make the change
   .Example
-    Set-ScreenResolution -Width 1024 -Height 768    
+    Set-ScreenResolution -Width 1024 -Height 768  -Rate 60  
   #>
 function Set-ScreenResolution(){
 param (
@@ -15,7 +15,11 @@ $Width,
 [Parameter(Mandatory=$true,
       Position = 1)]
 [int]
-$Height
+$Height,
+[Parameter(Mandatory=$true,
+      Position = 2)]
+[int]
+$Rate
 )
 $pinvokeCode = @"
 using System;
@@ -79,13 +83,14 @@ namespace Resolution
 
   public class PrmaryScreenResolution
   {
-    static public string ChangeResolution(int width, int height)
+    static public string ChangeResolution(int width, int height, int rate)
     {
       DEVMODE1 dm = GetDevMode1();
       if (0 != User_32.EnumDisplaySettings(null, User_32.ENUM_CURRENT_SETTINGS, ref dm))
       {
         dm.dmPelsWidth = width;
         dm.dmPelsHeight = height;
+        dm.dmDisplayFrequency = rate;
         int iRet = User_32.ChangeDisplaySettings(ref dm, User_32.CDS_TEST);
         if (iRet == User_32.DISP_CHANGE_FAILED)
         {
@@ -129,5 +134,5 @@ namespace Resolution
 }
 "@
 Add-Type $pinvokeCode -ErrorAction SilentlyContinue
-[Resolution.PrmaryScreenResolution]::ChangeResolution($width,$height)
+[Resolution.PrmaryScreenResolution]::ChangeResolution($width,$height,$rate)
 }
